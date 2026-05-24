@@ -1,0 +1,93 @@
+# corpus-spec.yaml
+#
+# Machine-readable write permissions for each vault corpus (directory).
+#
+# Fields:
+#   write_allowed_by:   Who may write to this corpus.
+#                         agent   = Claude Code, Copilot CLI, Codex, or any vault-kit agent
+#                         cron    = scheduled sync or sweep jobs
+#                         sync    = external sync workers (reader-sync, notion-sync, teams-sync)
+#                         user    = human edits in Obsidian or directly on disk
+#
+#   agent_write_blocked: When true, agents MUST NOT write to this corpus. Hard stop.
+#                        Omitted when false (not blocked).
+#
+#   frontmatter_required: Fields the agent must include on every note written here.
+#                         Agents should validate before writing and abort if any field is missing.
+#
+#   partition:          Per-device = agents write to <corpus>/<device-id>/ subdirs only.
+#                       single-writer = one file, last-write-wins (hot.md).
+#                       none = no partitioning constraint.
+#                       Omitted = not applicable (e.g. sync-only corpora).
+#
+#   indexed:            Whether notes in this corpus are included in the search index.
+#                       false = excluded from FTS5 and vector index.
+
+corpora:
+  Agent/Knowledge:
+    write_allowed_by: [agent, cron]
+    frontmatter_required: [title, type, source, tags, created]
+    partition: per-device
+    indexed: true
+
+  Agent/Research:
+    write_allowed_by: [agent]
+    frontmatter_required: [title, type, source, tags, created, topic, sources_consulted]
+    partition: per-device
+    indexed: true
+
+  Agent/Reports:
+    write_allowed_by: [agent]
+    frontmatter_required: [title, type, source, tags, created, report_type]
+    partition: per-device
+    indexed: true
+
+  Agent/Sessions:
+    write_allowed_by: [agent, cron]
+    frontmatter_required: [title, created, session_started, notes_created]
+    partition: per-device
+    indexed: true
+
+  Agent/Artifacts:
+    write_allowed_by: [agent]
+    partition: per-device
+    indexed: false
+
+  Agent/hot.md:
+    write_allowed_by: [agent]
+    partition: single-writer
+    indexed: false
+
+  Daily:
+    write_allowed_by: [user]
+    agent_write_blocked: true
+    indexed: true
+
+  Projects:
+    write_allowed_by: [user, agent]
+    partition: none
+    indexed: true
+
+  Capture/reader:
+    write_allowed_by: [sync]
+    agent_write_blocked: true
+    indexed: true
+
+  Capture/web:
+    write_allowed_by: [user]
+    indexed: true
+
+  Entities:
+    write_allowed_by: [user]
+    agent_write_blocked: true
+    indexed: true
+
+  Synced:
+    write_allowed_by: [sync, cron]
+    agent_write_blocked: true
+    indexed: true
+
+  Archive:
+    write_allowed_by: [user, agent]
+    partition: none
+    indexed: true
