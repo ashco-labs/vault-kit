@@ -36,11 +36,28 @@ PATH_PATTERNS = re.compile(
     r")"
 )
 
+# Paths to filter out of "files touched" (internal noise, not user-relevant)
+NOISE_PATH_PATTERNS = [
+    "/.claude/plugins/cache/",
+    "/.claude/skills/",           # symlinks, not real skill work
+    "/.config/superpowers/",
+    "/.op/service-account",
+]
+
 # Project path substrings that indicate subprocess/cron JSONL, not interactive sessions.
-# These create tiny transcripts (1-2 turns) that aren't worth digesting.
 SKIP_PROJECT_PATTERNS = [
     "-workers-reader-sync",      # reader-sync AI tag generation (claude -p)
     "-workers-scheduled-scripts", # codify-reflection cron
+]
+
+# Patterns in user message text that indicate system-injected content, not real user input.
+SYSTEM_NOISE_PATTERNS = [
+    "<local-command-caveat>",
+    "<system-reminder>",
+    "<command-name>",
+    "<command-message>",
+    "CONTEXT\n=======",
+    "Contents of /Users/",        # auto-loaded CLAUDE.md dumps
 ]
 
 
@@ -148,17 +165,34 @@ def parse_transcript(jsonl_path: str) -> dict | None:
     if not user_messages:
         return None
 
-    # Objective: first real user message (skip very short ones like "doc")
+    # Objective: first real user message, with system-injected noise stripped
     objective = "Untitled session"
     for msg in user_messages:
         cleaned = msg.strip()
-        if len(cleaned) > 5:
-            # Truncate long objectives
-            if len(cleaned) > 120:
-                objective = cleaned[:117] + "..."
-            else:
-                objective = cleaned
-            break
+        if len(cleaned) <= 5:
+            continue
+        # Strip XML-like tags (system-reminder, local-command-caveat, etc.)
+        cleaned = re.sub(r"<[^>]+>[^<]*</[^>]+>", "", cleaned)
+        cleaned = re.sub(r"<[^>]+>", "", cleaned)
+        # Strip context injection blocks (CONTEXT\n=======\n...)
+        cleaned = re.sub(r"CONTEXT\s*\n=+\n.*", "", cleaned, flags=re.DOTALL)
+        # Strip "Contents of /Users/..." auto-loaded file dumps
+        cleaned = re.sub(r"Contents of /Users/\S+:.*?(?=\n\n|\Z)", "", cleaned, flags=re.DOTALL)
+        cleaned = cleaned.strip()
+        if len(cleaned) <= 5:
+            continue
+        # Take first non-empty line
+        for line in cleaned.split("\n"):
+            line = line.strip()
+            if len(line) > 5:
+                if len(line) > 120:
+                    objective = line[:117] + "..."
+                else:
+                    objective = line
+                break
+        else:
+            continue
+        break
 
     # Timestamps
     first_ts = all_timestamps[0] if all_timestamps else None
@@ -181,10 +215,13 @@ def parse_transcript(jsonl_path: str) -> dict | None:
         except (ValueError, TypeError):
             pass
 
-    # File paths mentioned
+    # File paths mentioned (filter out internal noise)
     paths_found = set(PATH_PATTERNS.findall(all_text))
-    # Normalize and deduplicate
-    paths_found = sorted(set(p.rstrip("/.,:;)") for p in paths_found))[:20]
+    paths_found = sorted(set(
+        p.rstrip("/.,:;)")
+        for p in paths_found
+        if not any(noise in p for noise in NOISE_PATH_PATTERNS)
+    ))[:20]
 
     return {
         "objective": objective,
@@ -231,7 +268,6 @@ def build_digest(summary: dict, jsonl_path: str) -> str:
         f"created: {created}",
         f"session_started: {session_started}" if session_started else None,
         f'duration: "{summary["duration"]}"' if summary["duration"] else None,
-        "notes_created: []",
         f"transcript: {jsonl_path}",
         "---",
         "",
