@@ -47,18 +47,17 @@ vault-root/
 │
 ├── Entities/                   [STRICT: agent writes blocked]
 │   ├── People/
-│   ├── Organizations/
-│   └── Tools/
+│   ├── Companies/
+│   └── Concepts/               Maps of Content linking related notes
 │
 ├── Synced/                     [STRICT: agent writes blocked]
-│   ├── notion/                 Notion-sync output
-│   └── teams/                  Teams-sync output
+│   ├── notion/                 (home: Notion sync)
+│   ├── meetings/               (work: Teams meeting summaries)
+│   ├── email/                  (work: email action items)
+│   └── bookmarks/              Bookmark index
 │
-├── Archive/                    [FLEXIBLE]
-│   └── <anything>              Completed, shelved, or historical material
-│
-└── transcripts/                [STRICT path, not indexed]
-    └── YYYY-MM-DD-slug.jsonl   Agent session transcripts
+└── Archive/                    [FLEXIBLE]
+    └── <anything>              Completed, shelved, or historical material
 ```
 
 ---
@@ -80,7 +79,6 @@ Agents write to these paths. The names are not negotiable.
 | `Daily/` | user | Agents must not write here |
 | `Entities/` | user | Agents must not write here |
 | `Synced/` | sync | Agents must not write here |
-| `transcripts/` | agent | Not indexed; transcripts only |
 | `.vault-config/` | vault-kit | Symlink to vault-kit/protocol/; don't replace with a dir |
 
 ---

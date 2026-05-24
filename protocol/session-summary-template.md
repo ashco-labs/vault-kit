@@ -4,8 +4,9 @@ Copy this template to `Agent/Sessions/<device-id>/YYYY-MM-DD-<slug>.md` at sessi
 Fill in every section; omit sections that genuinely don't apply (a 20-minute triage
 session won't have Decisions or Rejected Alternatives).
 
-Scale to complexity. A short session produces a short summary. The goal is a
-searchable receipt, not a narrative.
+Target 20-50 lines. Scale to complexity: a short triage session lands at the low
+end, a multi-hour research session at the high end. The goal is a searchable
+receipt, not a narrative.
 
 ---
 
