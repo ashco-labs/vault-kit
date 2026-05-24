@@ -3,9 +3,10 @@
 digests in Agent/Sessions/<device-id>/.
 
 Idempotent: running twice on the same unchanged transcript produces no changes.
+Uses Haiku for summarization by default; --no-llm falls back to heuristic-only.
 
 Usage:
-    python3 chat-synth.py [--vault <path>] [--device-id <id>]
+    python3 chat-synth.py [--vault <path>] [--device-id <id>] [--no-llm]
 """
 
 import argparse
@@ -18,6 +19,12 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:
+    import anthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -223,6 +230,23 @@ def parse_transcript(jsonl_path: str) -> dict | None:
         if not any(noise in p for noise in NOISE_PATH_PATTERNS)
     ))[:20]
 
+    # Build condensed conversation for LLM summarization (cap at ~12K chars)
+    convo_lines = []
+    char_budget = 12000
+    char_count = 0
+    for msg in user_messages[:30]:
+        chunk = f"USER: {msg[:500]}"
+        if char_count + len(chunk) > char_budget:
+            break
+        convo_lines.append(chunk)
+        char_count += len(chunk)
+    for msg in assistant_messages[:30]:
+        chunk = f"ASSISTANT: {msg[:300]}"
+        if char_count + len(chunk) > char_budget:
+            break
+        convo_lines.append(chunk)
+        char_count += len(chunk)
+
     return {
         "objective": objective,
         "user_turns": len(user_messages),
@@ -231,7 +255,89 @@ def parse_transcript(jsonl_path: str) -> dict | None:
         "last_ts": last_ts,
         "duration": duration,
         "file_paths": paths_found,
+        "conversation": "\n\n".join(convo_lines),
     }
+
+
+# ---------------------------------------------------------------------------
+# LLM summarization
+# ---------------------------------------------------------------------------
+
+SUMMARIZE_PROMPT = """Summarize this Claude Code session transcript into a structured digest.
+
+Session info:
+- Duration: {duration}
+- User turns: {user_turns}
+- Assistant turns: {assistant_turns}
+
+Transcript (condensed):
+{conversation}
+
+Write a session digest with these sections. Be concise (target 20-50 lines total). Use bullet points.
+
+## Summary
+2-3 sentences: what was the session about, what was accomplished.
+
+## Decisions made
+Bullet list of decisions or choices made during the session. Skip if none.
+
+## Key outcomes
+Bullet list of concrete results (files created, bugs fixed, features shipped, PRs opened). Skip if none.
+
+## Open threads
+Bullet list of unfinished work, blockers, or follow-ups identified. Skip if none.
+
+Do not include the Stats or Files touched sections (those are added separately).
+Do not use em dashes. Use periods, colons, or commas instead.
+Do not start with "This session" or "The user". Jump straight into what happened.
+
+After the digest sections, add a final line:
+TAGS: tag1, tag2, tag3, tag4, tag5
+
+Generate 3-7 lowercase kebab-case topical tags for this session (e.g. vault-kit, capture-pipeline, monarch-review, infrastructure, debugging). Tags should describe the topic/domain, not the activity."""
+
+
+def summarize_with_haiku(summary: dict, api_key: str, base_url: str | None = None) -> tuple[str | None, list[str]]:
+    """Call Haiku to generate a structured session summary.
+    Uses claude-proxy if base_url is set, otherwise direct Anthropic API.
+    Returns (markdown_summary, tags_list). Either may be empty on failure."""
+    if not HAS_ANTHROPIC or not api_key:
+        return None, []
+
+    prompt = SUMMARIZE_PROMPT.format(
+        duration=summary["duration"] or "unknown",
+        user_turns=summary["user_turns"],
+        assistant_turns=summary["assistant_turns"],
+        conversation=summary.get("conversation", ""),
+    )
+
+    try:
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = response.content[0].text.strip()
+
+        # Extract tags from the TAGS: line at the end
+        tags = []
+        lines = text.split("\n")
+        summary_lines = []
+        for line in lines:
+            if line.strip().startswith("TAGS:"):
+                tag_str = line.strip()[5:].strip()
+                tags = [t.strip().lower() for t in tag_str.split(",") if t.strip()]
+            else:
+                summary_lines.append(line)
+
+        return "\n".join(summary_lines).strip(), tags
+    except Exception as e:
+        print(f"  [warn] Haiku summarization failed: {e}", file=sys.stderr)
+        return None, []
 
 
 # ---------------------------------------------------------------------------
@@ -239,7 +345,7 @@ def parse_transcript(jsonl_path: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 
-def build_digest(summary: dict, jsonl_path: str) -> str:
+def build_digest(summary: dict, jsonl_path: str, llm_summary: str | None = None, tags: list[str] | None = None) -> str:
     """Build a markdown digest from the parsed summary."""
     obj = summary["objective"]
     # Title: first line of objective, cleaned up
@@ -268,18 +374,24 @@ def build_digest(summary: dict, jsonl_path: str) -> str:
         f"created: {created}",
         f"session_started: {session_started}" if session_started else None,
         f'duration: "{summary["duration"]}"' if summary["duration"] else None,
+        f"tags: {json.dumps(tags)}" if tags else None,
         f"transcript: {jsonl_path}",
         "---",
         "",
-        "## Objective",
-        "",
-        obj,
-        "",
-        "## Stats",
-        "",
-        f"- User turns: {summary['user_turns']}",
-        f"- Assistant turns: {summary['assistant_turns']}",
     ]
+
+    if llm_summary:
+        lines.append(llm_summary)
+    else:
+        lines.append("## Summary")
+        lines.append("")
+        lines.append(obj)
+
+    lines.append("")
+    lines.append("## Stats")
+    lines.append("")
+    lines.append(f"- User turns: {summary['user_turns']}")
+    lines.append(f"- Assistant turns: {summary['assistant_turns']}")
 
     if summary["duration"]:
         lines.append(f"- Duration: {summary['duration']}")
@@ -337,9 +449,31 @@ def find_existing_digest(
 # ---------------------------------------------------------------------------
 
 
-def run(vault_path: str, device_id: str) -> None:
+def run(vault_path: str, device_id: str, use_llm: bool = True) -> None:
     vault_path = os.path.realpath(os.path.expanduser(vault_path))
     now = time.time()
+
+    # LLM config: prefer claude-proxy (Max plan, free), fall back to direct API
+    proxy_url = os.environ.get("CLAUDE_PROXY_URL", "")
+    proxy_key = os.environ.get("CLAUDE_PROXY_API_KEY", "")
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+
+    llm_base_url = None
+    llm_api_key = ""
+    if proxy_url and proxy_key:
+        llm_base_url = proxy_url
+        llm_api_key = proxy_key
+    elif api_key:
+        llm_api_key = api_key
+    else:
+        llm_api_key = ""
+
+    if use_llm and not HAS_ANTHROPIC:
+        print("[warn] anthropic package not installed, falling back to heuristic mode", file=sys.stderr)
+        use_llm = False
+    if use_llm and not llm_api_key:
+        print("[warn] no LLM credentials (set CLAUDE_PROXY_URL+CLAUDE_PROXY_API_KEY or ANTHROPIC_API_KEY)", file=sys.stderr)
+        use_llm = False
 
     jsonl_files = glob.glob(JSONL_GLOB)
     if not jsonl_files:
@@ -348,6 +482,7 @@ def run(vault_path: str, device_id: str) -> None:
 
     print(f"Vault:     {vault_path}")
     print(f"Device:    {device_id}")
+    print(f"Mode:      {'Haiku summarization' if use_llm else 'heuristic only'}")
     print(f"Transcripts found: {len(jsonl_files)}")
     print()
 
@@ -401,8 +536,14 @@ def run(vault_path: str, device_id: str) -> None:
             except (ValueError, TypeError):
                 pass
 
+        # Summarize via Haiku (or fall back to heuristic)
+        llm_summary = None
+        llm_tags = []
+        if use_llm:
+            llm_summary, llm_tags = summarize_with_haiku(summary, llm_api_key, llm_base_url)
+
         # Build and write digest
-        digest_content = build_digest(summary, jsonl_path)
+        digest_content = build_digest(summary, jsonl_path, llm_summary, llm_tags)
         out_path = digest_path_for(vault_path, device_id, jsonl_path, summary)
 
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -444,8 +585,13 @@ def main():
         default=os.environ.get("VAULT_DEVICE_ID", "default"),
         help="Device identifier for session grouping (default: VAULT_DEVICE_ID env or 'default')",
     )
+    parser.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Skip Haiku summarization, use heuristic-only mode",
+    )
     args = parser.parse_args()
-    run(args.vault, args.device_id)
+    run(args.vault, args.device_id, use_llm=not args.no_llm)
 
 
 if __name__ == "__main__":
