@@ -93,10 +93,12 @@ def init_db(db_path: str) -> sqlite3.Connection:
     """Create all tables if they don't exist. Load sqlite-vec extension."""
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
-    db = sqlite3.connect(db_path)
+    db = sqlite3.connect(db_path, timeout=30)
     db.enable_load_extension(True)
     sqlite_vec.load(db)
     db.enable_load_extension(False)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA busy_timeout=30000")
 
     db.executescript(SCHEMA_SQL)
 

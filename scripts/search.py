@@ -49,10 +49,12 @@ def open_db(db_path: str) -> sqlite3.Connection:
         print("Run indexer.py first to build the index.", file=sys.stderr)
         sys.exit(1)
 
-    db = sqlite3.connect(db_path)
+    db = sqlite3.connect(db_path, timeout=30)
     db.enable_load_extension(True)
     sqlite_vec.load(db)
     db.enable_load_extension(False)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA busy_timeout=30000")
     return db
 
 

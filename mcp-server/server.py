@@ -71,11 +71,14 @@ def resolve_paths() -> tuple[str, str]:
 
 
 def open_db(db_path: str) -> sqlite3.Connection:
-    """Open the vault index DB with sqlite-vec loaded."""
-    db = sqlite3.connect(db_path)
+    """Open the vault index DB with sqlite-vec loaded. WAL mode + 30s busy timeout
+    for concurrent access from indexer-watch, cron, and MCP server."""
+    db = sqlite3.connect(db_path, timeout=30)
     db.enable_load_extension(True)
     sqlite_vec.load(db)
     db.enable_load_extension(False)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA busy_timeout=30000")
     return db
 
 
@@ -175,40 +178,10 @@ def do_capture_knowledge(
     vault_root, db_path = resolve_paths()
     device_id = VAULT_DEVICE_ID
 
-    # Dedup check: SHA-256 of content body
-    content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-    short_hash = content_hash[:6]
-
-    db = open_db(db_path)
-    try:
-        existing = db.execute(
-            "SELECT file_path FROM vault_vectors WHERE content_hash = ?",
-            (content_hash,),
-        ).fetchone()
-    finally:
-        db.close()
-
-    if existing:
-        return {
-            "file_path": existing[0],
-            "title": title,
-            "tags": tags or [],
-            "deduplicated": True,
-            "message": f"Content already exists at {existing[0]}",
-        }
-
-    # Generate filename
     today = date.today().isoformat()
     slug = slugify(title)
-    filename = f"{today}-{slug}-{short_hash}.md"
 
-    # Build target directory and path
-    knowledge_dir = os.path.join(vault_root, "Agent", "Knowledge", device_id)
-    os.makedirs(knowledge_dir, exist_ok=True)
-    abs_path = os.path.join(knowledge_dir, filename)
-    rel_path = os.path.relpath(abs_path, vault_root)
-
-    # Build frontmatter
+    # Build frontmatter + body first so we can hash the full file content
     fm_lines = [
         "---",
         f"title: {title}",
@@ -228,6 +201,36 @@ def do_capture_knowledge(
     fm_lines.append("---")
 
     file_content = "\n".join(fm_lines) + "\n\n" + content + "\n"
+
+    # Hash the full file content (matches what the indexer stores)
+    content_hash = hashlib.sha256(file_content.encode("utf-8")).hexdigest()
+    short_hash = content_hash[:6]
+
+    # Dedup check against indexed hashes
+    db = open_db(db_path)
+    try:
+        existing = db.execute(
+            "SELECT file_path FROM vault_vectors WHERE content_hash = ?",
+            (content_hash,),
+        ).fetchone()
+    finally:
+        db.close()
+
+    if existing:
+        return {
+            "file_path": existing[0],
+            "title": title,
+            "tags": tags or [],
+            "deduplicated": True,
+            "message": f"Content already exists at {existing[0]}",
+        }
+
+    # Generate filename and write
+    filename = f"{today}-{slug}-{short_hash}.md"
+    knowledge_dir = os.path.join(vault_root, "Agent", "Knowledge", device_id)
+    os.makedirs(knowledge_dir, exist_ok=True)
+    abs_path = os.path.join(knowledge_dir, filename)
+    rel_path = os.path.relpath(abs_path, vault_root)
 
     # Write file
     with open(abs_path, "w", encoding="utf-8") as f:
