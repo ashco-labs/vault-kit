@@ -25,6 +25,8 @@ from pathlib import Path
 
 JSONL_GLOB = os.path.expanduser("~/.claude/projects/*/*.jsonl")
 ACTIVE_THRESHOLD_SECONDS = 30 * 60  # skip files modified <30 min ago
+MIN_USER_TURNS = 3  # skip transcripts with fewer real user turns (filters out subprocess calls)
+MIN_DURATION_SECONDS = 60  # skip sessions shorter than 1 minute
 PATH_PATTERNS = re.compile(
     r"(?:"
     r"~/repos/[\w./-]+"
@@ -33,6 +35,13 @@ PATH_PATTERNS = re.compile(
     r"|~/[\w./-]{3,}"
     r")"
 )
+
+# Project path substrings that indicate subprocess/cron JSONL, not interactive sessions.
+# These create tiny transcripts (1-2 turns) that aren't worth digesting.
+SKIP_PROJECT_PATTERNS = [
+    "-workers-reader-sync",      # reader-sync AI tag generation (claude -p)
+    "-workers-scheduled-scripts", # codify-reflection cron
+]
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +329,11 @@ def run(vault_path: str, device_id: str) -> None:
             skipped += 1
             continue
 
+        # Skip known subprocess/cron project paths
+        if any(pat in jsonl_path for pat in SKIP_PROJECT_PATTERNS):
+            skipped += 1
+            continue
+
         # Check for existing digest
         existing = find_existing_digest(vault_path, device_id, jsonl_path)
         if existing:
@@ -334,6 +348,22 @@ def run(vault_path: str, device_id: str) -> None:
         if summary is None:
             skipped += 1
             continue
+
+        # Skip trivial sessions (subprocess calls, 1-shot prompts)
+        if summary["user_turns"] < MIN_USER_TURNS:
+            skipped += 1
+            continue
+
+        # Skip very short sessions
+        if summary["first_ts"] and summary["last_ts"]:
+            try:
+                t0 = datetime.fromisoformat(summary["first_ts"].replace("Z", "+00:00"))
+                t1 = datetime.fromisoformat(summary["last_ts"].replace("Z", "+00:00"))
+                if (t1 - t0).total_seconds() < MIN_DURATION_SECONDS:
+                    skipped += 1
+                    continue
+            except (ValueError, TypeError):
+                pass
 
         # Build and write digest
         digest_content = build_digest(summary, jsonl_path)
