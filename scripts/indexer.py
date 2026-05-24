@@ -38,7 +38,10 @@ SKIP_DIRS = {".obsidian", ".git", ".vault-config", ".DS_Store", ".trash", ".stve
 # Relative path prefix -> source_type mapping (longest prefix first)
 SOURCE_TYPE_MAP = [
     ("Capture/reader/", "capture:reader"),
+    ("Capture/notion/", "capture:notion"),
     ("Capture/web/", "capture:web"),
+    ("Capture/meetings/", "capture:meetings"),
+    ("Capture/email/", "capture:email"),
     ("Agent/Knowledge/", "agent:knowledge"),
     ("Agent/Research/", "agent:research"),
     ("Agent/Reports/", "agent:reports"),
@@ -47,7 +50,6 @@ SOURCE_TYPE_MAP = [
     ("Daily/", "daily"),
     ("Projects/", "project"),
     ("Entities/", "entity"),
-    ("Synced/", "synced"),
     ("Archive/", "archive"),
 ]
 

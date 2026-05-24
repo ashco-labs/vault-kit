@@ -32,9 +32,12 @@ vault-root/
 │   └── Artifacts/
 │       └── <device-id>/        Per-device diagrams and structured outputs
 │
-├── Capture/                    [STRICT for Capture/reader/]
-│   ├── reader/                 Reader-sync writes here (agent writes blocked)
-│   └── web/                    User-captured web clippings
+├── Capture/                    [STRICT: agent writes blocked]
+│   ├── reader/                 Reader-sync (home: Readwise archive)
+│   ├── notion/                 Notion-sync (home: Notion DB mirrors)
+│   ├── web/                    User-captured web clippings
+│   ├── meetings/               (work: Teams meeting summaries)
+│   └── email/                  (work: email action items)
 │
 ├── Daily/                      [STRICT: agent writes blocked]
 │   └── YYYY-MM-DD.md           One file per day, user-authored
@@ -49,12 +52,6 @@ vault-root/
 │   ├── People/
 │   ├── Companies/
 │   └── Concepts/               Maps of Content linking related notes
-│
-├── Synced/                     [STRICT: agent writes blocked]
-│   ├── notion/                 (home: Notion sync)
-│   ├── meetings/               (work: Teams meeting summaries)
-│   ├── email/                  (work: email action items)
-│   └── bookmarks/              Bookmark index
 │
 └── Archive/                    [FLEXIBLE]
     └── <anything>              Completed, shelved, or historical material
@@ -75,10 +72,9 @@ Agents write to these paths. The names are not negotiable.
 | `Agent/Reports/<device-id>/` | agent (per-device) | |
 | `Agent/Sessions/<device-id>/` | agent (per-device) | |
 | `Agent/Artifacts/<device-id>/` | agent (per-device) | |
-| `Capture/reader/` | reader-sync | Agents must not write here |
+| `Capture/` | sync + user | All subdirs; agents must not write here |
 | `Daily/` | user | Agents must not write here |
 | `Entities/` | user | Agents must not write here |
-| `Synced/` | sync | Agents must not write here |
 | `.vault-config/` | vault-kit | Symlink to vault-kit/protocol/; don't replace with a dir |
 
 ---

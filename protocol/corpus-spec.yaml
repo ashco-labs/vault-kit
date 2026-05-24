@@ -77,13 +77,23 @@ corpora:
     write_allowed_by: [user]
     indexed: true
 
-  Entities:
-    write_allowed_by: [user]
+  Capture/notion:
+    write_allowed_by: [sync, cron]
     agent_write_blocked: true
     indexed: true
 
-  Synced:
-    write_allowed_by: [sync, cron]
+  Capture/meetings:
+    write_allowed_by: [sync]
+    agent_write_blocked: true
+    indexed: true
+
+  Capture/email:
+    write_allowed_by: [sync]
+    agent_write_blocked: true
+    indexed: true
+
+  Entities:
+    write_allowed_by: [user]
     agent_write_blocked: true
     indexed: true
 
