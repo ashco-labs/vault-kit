@@ -99,7 +99,7 @@ between "agent last touched this" and "someone last edited this file."
 
 ## Session Summaries as Receipts
 
-Session summaries in `Agent/Sessions/<device-id>/` serve as the primary audit record
+Session summaries in `Agent/Chats/<device-id>/` serve as the primary audit record
 for agent activity. For any date range, you can answer:
 
 - What sessions ran?

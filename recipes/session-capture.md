@@ -112,7 +112,7 @@ frontmatter is complete. Update `as_of` if you made revisions.
 ### Step 4: Write Session Summary
 
 After all notes are written, write the session summary to
-`Agent/Sessions/<device-id>/YYYY-MM-DD-<slug>.md`.
+`Agent/Chats/<device-id>/YYYY-MM-DD-<slug>.md`.
 
 Use `session-summary-template.md` as the template. The key sections:
 

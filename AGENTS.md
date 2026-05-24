@@ -144,7 +144,7 @@ last_agent_update: YYYY-MM-DD
 ---
 ```
 
-Agent-written notes go under `Agent/Knowledge/<device-id>/` (atomic), `Agent/Research/<device-id>/` (research reports), or `Agent/Sessions/<device-id>/` (session summaries). Do not write to `Capture/reader/`, `Daily/`, `Entities/`, or `Synced/` — those are user- or sync-owned.
+Agent-written notes go under `Agent/Knowledge/<device-id>/` (atomic), `Agent/Research/<device-id>/` (research reports), or `Agent/Chats/<device-id>/` (session summaries). Do not write to `Capture/reader/`, `Daily/`, `Entities/`, or `Synced/` — those are user- or sync-owned.
 
 ---
 

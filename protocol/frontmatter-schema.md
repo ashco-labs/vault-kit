@@ -31,7 +31,7 @@ superseded_by: string             # Optional. Wikilink to the replacement note i
 - `reference`: maintained reference doc. Updated in place across sessions (not superseded). Goes to Agent/Reference/.
 - `research`: synthesis of external sources on a bounded topic. Goes to Agent/Research/.
 - `report`: internally generated analysis (audits, critiques, health snapshots). Goes to Agent/Reports/.
-- `session`: session summary with decisions, outcomes, open threads. Goes to Agent/Sessions/.
+- `session`: session summary with decisions, outcomes, open threads. Goes to Agent/Chats/.
 - `daily`: dated daily note. Human-authored; rarely written by agent.
 - `clipping`: saved web or reader content. Goes to Capture/.
 - `entity`: person, project, or organization stub. Goes to Entities/.
@@ -82,7 +82,7 @@ report_type: audit | critique | health | review
 scope: string                     # What was audited/reviewed: "apps/capture pipeline", "monarch rules Q2"
 ```
 
-### Agent/Sessions/
+### Agent/Chats/
 
 ```yaml
 session_started: YYYY-MM-DDTHH:MM  # ISO 8601, local time

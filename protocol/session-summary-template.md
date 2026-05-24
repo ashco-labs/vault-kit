@@ -1,6 +1,6 @@
 # Session Summary Template
 
-Copy this template to `Agent/Sessions/<device-id>/YYYY-MM-DD-<slug>.md` at session end.
+Copy this template to `Agent/Chats/<device-id>/YYYY-MM-DD-<slug>.md` at session end.
 Fill in every section; omit sections that genuinely don't apply (a 20-minute triage
 session won't have Decisions or Rejected Alternatives).
 

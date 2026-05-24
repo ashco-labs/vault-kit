@@ -75,7 +75,7 @@ report. See `protocol/capture-protocol.md` for note structure and frontmatter ex
 ## Writing the Session Summary
 
 After all notes are written, write the session summary. File it at
-`Agent/Sessions/<device-id>/YYYY-MM-DD-<slug>.md`. Use the template in
+`Agent/Chats/<device-id>/YYYY-MM-DD-<slug>.md`. Use the template in
 `protocol/session-summary-template.md`.
 
 Key fields:

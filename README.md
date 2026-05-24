@@ -27,7 +27,7 @@ Three commands. If bootstrap completes without errors, your vault is indexed and
 
 **MCP server.** `mcp-server/` exposes three tools over stdio: `search_vault`, `capture_knowledge`, and `vault_stats`. Wire it into your agent's MCP config and the agent can search and write to the vault directly.
 
-**Session protocol.** At session start, an agent loads `Agent/hot.md` plus the current daily note and any relevant project context. At session end, it runs Panning for Gold: classify each finding as ACT NOW, RESEARCH, PARK, or KILL. ACT NOW and RESEARCH findings go to atomic notes in `Agent/Knowledge/`. A session summary goes to `Agent/Sessions/`. Then commit.
+**Session protocol.** At session start, an agent loads `Agent/hot.md` plus the current daily note and any relevant project context. At session end, it runs Panning for Gold: classify each finding as ACT NOW, RESEARCH, PARK, or KILL. ACT NOW and RESEARCH findings go to atomic notes in `Agent/Knowledge/`. A session summary goes to `Agent/Chats/`. Then commit.
 
 ---
 

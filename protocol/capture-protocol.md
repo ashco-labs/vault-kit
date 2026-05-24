@@ -80,7 +80,7 @@ Run this at the end of every agent session. Sequence matters: capture notes befo
    - Already exist in Agent/Research/<device-id>/
    - Verify frontmatter is complete; update as_of if revised
 
-5. Write session summary to Agent/Sessions/<device-id>/:
+5. Write session summary to Agent/Chats/<device-id>/:
    - Use session-summary-template.md
    - Link all atomic notes and research reports created this session
    - Record open threads (unresolved, handed off, or deferred)

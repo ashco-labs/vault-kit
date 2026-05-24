@@ -29,8 +29,8 @@ vault-root/
 │   │   └── <device-id>/        Per-device external source synthesis
 │   ├── Reports/
 │   │   └── <device-id>/        Per-device audit/review reports
-│   ├── Sessions/
-│   │   └── <device-id>/        Per-device session summaries
+│   ├── Chats/
+│   │   └── <device-id>/        Per-transcript conversation digests
 │   └── Artifacts/
 │       └── <device-id>/        Per-device diagrams and structured outputs
 │
@@ -73,7 +73,7 @@ Agents write to these paths. The names are not negotiable.
 | `Agent/Reference/<device-id>/` | agent (per-device) | Maintained docs, edit-in-place |
 | `Agent/Research/<device-id>/` | agent (per-device) | External source synthesis |
 | `Agent/Reports/<device-id>/` | agent (per-device) | |
-| `Agent/Sessions/<device-id>/` | agent (per-device) | |
+| `Agent/Chats/<device-id>/` | agent (per-device) | |
 | `Agent/Artifacts/<device-id>/` | agent (per-device) | |
 | `Capture/` | sync + user | All subdirs; agents must not write here |
 | `Daily/` | user | Agents must not write here |
@@ -92,7 +92,7 @@ The device ID is a short, stable identifier set during vault-kit setup:
 ```
 Agent/Knowledge/mac-mini/
 Agent/Knowledge/laptop/
-Agent/Sessions/mac-mini/
+Agent/Chats/mac-mini/
 ```
 
 Rules:

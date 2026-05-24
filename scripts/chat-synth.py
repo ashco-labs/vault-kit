@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """chat-synth: scan Claude Code JSONL session transcripts, generate session
-digests in Agent/Sessions/<device-id>/.
+digests in Agent/Chats/<device-id>/.
 
 Idempotent: running twice on the same unchanged transcript produces no changes.
 Uses Haiku for summarization by default; --no-llm falls back to heuristic-only.

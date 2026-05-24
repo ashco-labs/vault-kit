@@ -179,7 +179,7 @@ When a research thread produces findings, write them immediately rather than acc
 1. Classify each finding: ACT NOW / RESEARCH / PARK / KILL
 2. Write ACT NOW findings as atomic notes to `Agent/Knowledge/<device-id>/`
 3. Write RESEARCH findings as atomic notes (concise) or research reports (bounded investigations)
-4. Write session summary to `Agent/Sessions/<device-id>/YYYY-MM-DD-<slug>.md`
+4. Write session summary to `Agent/Chats/<device-id>/YYYY-MM-DD-<slug>.md`
 5. Update `Agent/hot.md` (remove resolved threads, add new cross-session threads)
 6. Commit: `git commit --author="Claude Agent <agent@local>" -m "agent: session YYYY-MM-DD <slug>"`
 

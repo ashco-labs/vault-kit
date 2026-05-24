@@ -34,7 +34,7 @@ Run this sequence before responding to the user's opening message:
 2. Read the last 3-5 daily notes (`Daily/YYYY-MM-DD.md`). These give recent context from
    the user's perspective outside agent sessions.
 
-3. Read the last 2-3 session summaries from `Agent/Sessions/<device-id>/`. These are
+3. Read the last 2-3 session summaries from `Agent/Chats/<device-id>/`. These are
    the searchable receipts of prior agent work, with links to every note created.
 
 4. Detect project from the user's opening message. Watch for `NNN-name` slug patterns

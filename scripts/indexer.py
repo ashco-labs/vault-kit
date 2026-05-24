@@ -46,7 +46,7 @@ SOURCE_TYPE_MAP = [
     ("Agent/Reference/", "agent:reference"),
     ("Agent/Research/", "agent:research"),
     ("Agent/Reports/", "agent:reports"),
-    ("Agent/Sessions/", "agent:sessions"),
+    ("Agent/Chats/", "agent:chats"),
     ("Agent/Artifacts/", "agent:artifacts"),
     ("Daily/", "daily"),
     ("Projects/", "project"),

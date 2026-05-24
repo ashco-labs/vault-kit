@@ -48,7 +48,7 @@ corpora:
     partition: per-device
     indexed: true
 
-  Agent/Sessions:
+  Agent/Chats:
     write_allowed_by: [agent, cron]
     frontmatter_required: [title, created, session_started, notes_created]
     partition: per-device
