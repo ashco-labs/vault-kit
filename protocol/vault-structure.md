@@ -23,8 +23,8 @@ vault-root/
 │   ├── hot.md                  Cross-session state (single-writer, always at this path)
 │   ├── Knowledge/
 │   │   └── <device-id>/        Per-device atomic findings (write-once, superseded)
-│   ├── Reference/
-│   │   └── <device-id>/        Per-device maintained docs (updated in place)
+│   ├── Wiki/
+│   │   └── <device-id>/        Per-device maintained wiki articles (edited in place)
 │   ├── Research/
 │   │   └── <device-id>/        Per-device external source synthesis
 │   ├── Reports/
@@ -70,7 +70,7 @@ Agents write to these paths. The names are not negotiable.
 | `Agent/` | vault-kit | All subdirs; do not rename |
 | `Agent/hot.md` | agent (single-writer) | Always at this exact path |
 | `Agent/Knowledge/<device-id>/` | agent (per-device) | Atomic findings, write-once |
-| `Agent/Reference/<device-id>/` | agent (per-device) | Maintained docs, edit-in-place |
+| `Agent/Wiki/<device-id>/` | agent (per-device) | Maintained docs, edit-in-place |
 | `Agent/Research/<device-id>/` | agent (per-device) | External source synthesis |
 | `Agent/Reports/<device-id>/` | agent (per-device) | |
 | `Agent/Chats/<device-id>/` | agent (per-device) | |

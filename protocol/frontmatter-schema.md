@@ -9,7 +9,7 @@ Every agent-written note, regardless of corpus:
 ```yaml
 ---
 title: string                     # Human-readable title (sentence case, no trailing period)
-type: atomic | reference | research | report | session | daily | clipping | entity | diagram
+type: atomic | wiki | research | report | session | daily | clipping | entity | diagram
 source: human | agent:claude-code | agent:copilot | reader-sync | notion-sync | teams-sync
 projects: [string]                # Optional. Project slugs: ["001-monarch-review"]. Omit if none.
 domain: string                    # Optional. Loose category: personal-finance, engineering, cooking, etc.
@@ -28,7 +28,7 @@ superseded_by: string             # Optional. Wikilink to the replacement note i
 
 **type** — controls which template is applied and which corpus the note belongs to:
 - `atomic`: a single finding, pattern, or decision. Write-once, superseded when stale. Goes to Agent/Knowledge/.
-- `reference`: maintained reference doc. Updated in place across sessions (not superseded). Goes to Agent/Reference/.
+- `wiki`: maintained reference doc. Updated in place across sessions (not superseded). Goes to Agent/Wiki/.
 - `research`: synthesis of external sources on a bounded topic. Goes to Agent/Research/.
 - `report`: internally generated analysis (audits, critiques, health snapshots). Goes to Agent/Reports/.
 - `session`: session summary with decisions, outcomes, open threads. Goes to Agent/Chats/.
@@ -58,7 +58,7 @@ confidence: high | medium | low   # Required here; optional elsewhere
 superseded_by: string             # Required when stale
 ```
 
-### Agent/Reference/
+### Agent/Wiki/
 
 ```yaml
 # No additional required fields beyond universal.

@@ -30,7 +30,7 @@ corpora:
     partition: per-device
     indexed: true
 
-  Agent/Reference:
+  Agent/Wiki:
     write_allowed_by: [agent]
     frontmatter_required: [title, type, source, tags, created]
     partition: per-device
