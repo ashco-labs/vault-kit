@@ -30,6 +30,12 @@ corpora:
     partition: per-device
     indexed: true
 
+  Agent/Reference:
+    write_allowed_by: [agent]
+    frontmatter_required: [title, type, source, tags, created]
+    partition: per-device
+    indexed: true
+
   Agent/Research:
     write_allowed_by: [agent]
     frontmatter_required: [title, type, source, tags, created, topic, sources_consulted]

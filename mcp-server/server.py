@@ -225,9 +225,17 @@ def do_capture_knowledge(
             "message": f"Content already exists at {existing[0]}",
         }
 
+    # Route to the right Agent/ subdir based on type
+    type_to_dir = {
+        "reference": "Reference",
+        "research": "Research",
+        "report": "Reports",
+    }
+    agent_subdir = type_to_dir.get(note_type, "Knowledge")
+
     # Generate filename and write
     filename = f"{today}-{slug}-{short_hash}.md"
-    knowledge_dir = os.path.join(vault_root, "Agent", "Knowledge", device_id)
+    knowledge_dir = os.path.join(vault_root, "Agent", agent_subdir, device_id)
     os.makedirs(knowledge_dir, exist_ok=True)
     abs_path = os.path.join(knowledge_dir, filename)
     rel_path = os.path.relpath(abs_path, vault_root)

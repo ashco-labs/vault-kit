@@ -43,6 +43,7 @@ SOURCE_TYPE_MAP = [
     ("Capture/meetings/", "capture:meetings"),
     ("Capture/email/", "capture:email"),
     ("Agent/Knowledge/", "agent:knowledge"),
+    ("Agent/Reference/", "agent:reference"),
     ("Agent/Research/", "agent:research"),
     ("Agent/Reports/", "agent:reports"),
     ("Agent/Sessions/", "agent:sessions"),

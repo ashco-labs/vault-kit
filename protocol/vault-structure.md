@@ -22,9 +22,11 @@ vault-root/
 ├── Agent/                      [STRICT]
 │   ├── hot.md                  Cross-session state (single-writer, always at this path)
 │   ├── Knowledge/
-│   │   └── <device-id>/        Per-device atomic notes
+│   │   └── <device-id>/        Per-device atomic findings (write-once, superseded)
+│   ├── Reference/
+│   │   └── <device-id>/        Per-device maintained docs (updated in place)
 │   ├── Research/
-│   │   └── <device-id>/        Per-device research reports
+│   │   └── <device-id>/        Per-device external source synthesis
 │   ├── Reports/
 │   │   └── <device-id>/        Per-device audit/review reports
 │   ├── Sessions/
@@ -67,8 +69,9 @@ Agents write to these paths. The names are not negotiable.
 |---|---|---|
 | `Agent/` | vault-kit | All subdirs; do not rename |
 | `Agent/hot.md` | agent (single-writer) | Always at this exact path |
-| `Agent/Knowledge/<device-id>/` | agent (per-device) | See Per-Device Partitioning |
-| `Agent/Research/<device-id>/` | agent (per-device) | |
+| `Agent/Knowledge/<device-id>/` | agent (per-device) | Atomic findings, write-once |
+| `Agent/Reference/<device-id>/` | agent (per-device) | Maintained docs, edit-in-place |
+| `Agent/Research/<device-id>/` | agent (per-device) | External source synthesis |
 | `Agent/Reports/<device-id>/` | agent (per-device) | |
 | `Agent/Sessions/<device-id>/` | agent (per-device) | |
 | `Agent/Artifacts/<device-id>/` | agent (per-device) | |
