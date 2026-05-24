@@ -19,6 +19,7 @@ related: [string]                 # Optional. Wikilinks to related notes: ["[[no
 last_agent_update: YYYY-MM-DD    # Date of the last agent edit. Human edits don't update this field.
 confidence: high | medium | low   # Optional. For agent-authored findings and research. Omit for factual notes.
 superseded_by: string             # Optional. Wikilink to the replacement note if this one is stale.
+supersedes: [string]              # Optional. Wikilinks to notes this one replaces. Patch old notes' superseded_by in same write.
 ---
 ```
 
@@ -44,6 +45,8 @@ superseded_by: string             # Optional. Wikilink to the replacement note i
 **last_agent_update** — set on initial write, updated on each agent edit. Human edits in Obsidian don't touch this field. Lets you filter for "notes the agent touched recently" without walking git log.
 
 **superseded_by** — when a finding is wrong or outdated, write a replacement note and set this field on the old one. Don't delete the old note; the supersession chain is provenance.
+
+**supersedes** — list of wikilinks to notes this one replaces. Set on the new note when writing it. The old note's `superseded_by` should be patched in the same write. Both directions make the chain navigable from either end.
 
 ---
 
