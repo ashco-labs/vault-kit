@@ -21,6 +21,7 @@ import signal
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime
 
 # Make sibling scripts importable
@@ -64,6 +65,8 @@ class VaultDaemon:
         self.running = True
         self.last_file_check = time.time()
         self.scripts_dir = os.path.dirname(os.path.abspath(__file__))
+        self.hc_uuid = os.environ.get("HC_VAULT_DAEMON_UUID", "")
+        self.hc_base_url = os.environ.get("HC_BASE_URL", "https://hc.ashco.io/ping")
 
         signal.signal(signal.SIGTERM, self._shutdown)
         signal.signal(signal.SIGINT, self._shutdown)
@@ -71,6 +74,19 @@ class VaultDaemon:
     def _shutdown(self, signum, frame):
         print(f"\n[{_ts()}] Shutting down (signal {signum})...")
         self.running = False
+
+    def _ping_hc(self, status: str = "") -> None:
+        """Ping hc.ashco.io heartbeat. No-op if HC_VAULT_DAEMON_UUID not set."""
+        if not self.hc_uuid:
+            return
+        url = f"{self.hc_base_url}/{self.hc_uuid}"
+        if status:
+            url += f"/{status}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "ashco-platform/vault-daemon"})
+            urllib.request.urlopen(req, timeout=5)
+        except Exception:
+            pass
 
     # ----- File-watch (every 10s) ------------------------------------------
 
@@ -114,8 +130,10 @@ class VaultDaemon:
             print(f"[{_ts()}] full-index: starting incremental scan...")
             run_index(self.vault_path, self.db_path, full=False)
             print(f"[{_ts()}] full-index: done")
+            self._ping_hc()
         except Exception as e:
             print(f"[{_ts()}] full-index error: {e}", file=sys.stderr)
+            self._ping_hc("fail")
 
     # ----- Auto-sweep git commit (every 1h) --------------------------------
 
